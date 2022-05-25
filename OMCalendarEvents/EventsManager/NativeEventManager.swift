@@ -226,8 +226,8 @@ class NativeEventManager: NSObject {
     private func requestAccess(
         completion: @escaping EKEventStoreRequestAccessCompletionHandler
     ) {
-        DispatchQueue.main.async { [weak self] in
-            self?.eventStore.requestAccess(to: EKEntityType.event) { accessGranted, error in
+        EKEventStore().requestAccess( to: EKEntityType.event) { accessGranted, error in
+            DispatchQueue.main.async {
                 completion(accessGranted, error)
             }
         }
@@ -272,6 +272,9 @@ class NativeEventManager: NSObject {
             }
         }
 
+        let aInterval: TimeInterval = Double(event.alarmTime ?? 0) * 60
+        let alaram: EKAlarm? = aInterval > 0 ? EKAlarm(relativeOffset: aInterval) : nil
+
         newEvent.title = eventTitle
         newEvent.notes = eventDescription ?? ""
         newEvent.startDate = startDate
@@ -279,6 +282,10 @@ class NativeEventManager: NSObject {
         newEvent.location = event.location
         newEvent.url = event.url
         newEvent.calendar = eventStore.defaultCalendarForNewEvents
+
+        if let alarams = alaram {
+            newEvent.alarms = [alarams]
+        }
 
         return newEvent
     }
